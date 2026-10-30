@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>Reply Assistant – Divine Photo Studio</title>
+<style>
+:root{--navy:#2D4560;--gold:#B8923F;--ivory:#FBF7EF;--ink:#2B2B2B;--mute:#6B7280;--line:#E6DFD0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Gujarati","Noto Sans Devanagari",sans-serif;line-height:1.5}
+.wrap{max-width:520px;margin:0 auto;padding:16px 16px 32px;min-height:100vh;min-height:100dvh;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(32px,env(safe-area-inset-bottom))}
+button,input,textarea{-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit}
+h1{font-family:Georgia,serif;color:var(--navy);font-size:24px;margin:8px 0 2px;text-align:center}
+.sub{color:var(--gold);text-align:center;margin:0 0 16px;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 16px;box-shadow:0 2px 12px rgba(45,69,96,.06)}
+h3{font-size:15px;color:var(--navy);margin:18px 0 8px}h3:first-child{margin-top:0}
+.opt{color:var(--mute);font-weight:400;font-size:13px}
+.stars{display:flex;justify-content:center;gap:2px}
+.stars button{background:none;border:0;font-size:42px;line-height:1;min-width:52px;min-height:52px;color:#D9D2C0;cursor:pointer}
+.stars button.on{color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:6px 14px;border:1.5px solid var(--line);background:#fff;border-radius:22px;font-size:15px;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+input.t{display:block;width:100%;min-height:48px;padding:0 14px;border:1.5px solid var(--navy);border-radius:14px;font-size:16px;background:#fff;color:var(--ink)}
+.btn{display:block;width:100%;min-height:52px;border:0;border-radius:14px;background:var(--navy);color:#fff;font-size:17px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.btn:disabled{opacity:.4}
+textarea{display:block;width:100%;min-height:230px;resize:vertical;font-size:16px;line-height:1.5;color:var(--ink);background:var(--ivory);border:1px dashed var(--gold);border-radius:14px;padding:14px}
+.note{font-size:13px;color:var(--mute);margin:10px 0 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+.hidden{display:none}
+#rv{min-height:130px;background:#fff;border:1.5px solid var(--navy);border-style:solid}
+footer{text-align:center;font-size:12px;color:var(--mute);padding:6px 0 max(24px,env(safe-area-inset-bottom))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Reply Assistant</h1>
+  <p class="sub">Divine Photo Studio · Google review replies</p>
+  <div class="card">
+    <h3>1. Stars the customer gave</h3>
+    <div class="stars" id="stars"></div>
+    <h3>2. Customer's first name <span class="opt">(optional)</span></h3>
+    <input class="t" id="name" maxlength="30" autocomplete="off" autocapitalize="words" placeholder="e.g. Rahul">
+    <h3>3. Paste the customer's review <span class="opt">(optional but better)</span></h3>
+    <textarea id="rv" maxlength="1500" placeholder="Paste the Google review here"></textarea>
+    <button class="btn" id="gen" disabled>Write Reply</button>
+  </div>
+  <div class="card hidden" id="out" style="margin-top:14px">
+    <h3>Your reply <span class="opt">(you can edit it)</span></h3>
+    <textarea id="txt"></textarea>
+    <a class="btn" id="copyopen" href="https://business.google.com/" target="_blank" rel="noopener noreferrer" style="text-align:center;text-decoration:none;line-height:52px;padding:0">Copy &amp; Open Google Reviews</a>
+    <button class="btn alt" id="again">Another Version</button>
+    <p class="note">This copies your reply and opens your Google Business page. Tap <b>Reviews</b>, then <b>Reply</b> under the review and paste. Replies are public, so don't add private details such as prices or booking information.</p>
+  </div>
+</div>
+<footer>Powered By BrandLift.Ai Studio</footer>
+<div class="toast" id="toast"></div>
+<script>
+// ===== CONFIG =====
+const CONFIG={phone:"7878922247"};   // studio office number (Studio Profile)
+// The "Copy & Open" button opens https://business.google.com/ (sign in, tap Reviews, tap Reply). Replace the href in the HTML with a direct link if you find one.
+// NOTE: Gujarati (gu) and Hindi (hi) wording was written without a native review — please have a native speaker check the PH bank.
+
+const OCCDET=[["pre",/pre[\s-]?wedding|પ્રી[\s-]?વેડિંગ|प्री[\s-]?वेडिंग/i],["engage",/engagement|sagai|સગાઈ|सगाई/i],["baby",/baby\s?shower|બેબી\s?શાવર|बेबी\s?शावर/i],["jiyana",/jiyan|જિયાણા|જીયાણા|जियाना|जियाणा/i],["recep",/reception|રિસેપ્શન|रिसेप्शन/i],["anniv",/anniversary|એનિવર્સરી|सालगिरह|एनिवर्सरी/i],["corp",/corporate|કોર્પોરેટ|कॉर्पोरेट/i],["family",/birthday|family function|જન્મદિવસ|जन्मदिन/i],["wedding",/wedding|marriage|shaadi|shadi|લગ્ન|शादी|विवाह/i]];
+const TOPDET=[["frame",/frame|ફ્રેમ|फ्रेम/i],["passport",/passport|પાસપોર્ટ|पासपोर्ट/i],["print",/\bprints?\b|પ્રિન્ટ|प्रिंट/i],["video",/video|cinema|film|reel|વિડિ|वीडियो/i],["candid",/candid|emotion|કેન્ડિડ|कैंडिड|પળ|\bपल\b/i],["edit",/edit|colou?r|grading|એડિટ|કલર|एडिट|कलर/i],["team",/team|staff|behav|polite|friendly|cooperat|humble|ટીમ|સ્ટાફ|વર્તન|टीम|स्टाफ|व्यवहार/i],["album",/album|આલ્બમ|एल्बम|अल्बम/i],["deliv",/deliver|ડિલિવરી|डिलीवरी/i],["punct",/punctual|on[\s-]?time|organi[sz]ed|સમયસર|સમયના પાબંદ|समय पर|पाबंद/i],["value",/value for money|worth|reasonable|affordable|paisa|પૈસા|વાજબી|पैसा|वाजिब|किफायती/i],["photo",/photo|picture|\bpics?\b|image|ફોટો|ફોટા|फोटो|तस्वीर/i]];
+const PH={
+ en:{greet:n=>n?"Dear "+n+",":"Hello,",sign:"Warm regards,\nTeam Divine Photo Studio",
+  occ:{wedding:"your wedding",pre:"your pre-wedding shoot",engage:"your engagement",anniv:"your anniversary celebration",recep:"your reception",baby:"your baby shower",jiyana:"your Jiyana ceremony",corp:"your corporate event",family:"your family function"},
+  thanks:{hi:["Thank you so much for your wonderful review and the 5 stars!","Thank you for such kind words and for trusting Divine Photo Studio.","We are truly grateful for your lovely review."],
+          ok:["Thank you for your kind review and for choosing Divine Photo Studio.","Thank you for taking the time to share your experience.","We really appreciate your review."],
+          mid:["Thank you for sharing your honest feedback.","Thank you for taking the time to review us."],
+          lo:["Thank you for your honest feedback, and we are sorry your experience was not what you expected.","We are sorry we fell short, and thank you for telling us."]},
+  occL:["It was a pleasure to be part of {o}.","We are happy we could be part of {o}."],
+  topic:{frame:"We are happy you liked the photo frame.",passport:"We are glad your passport size photos turned out well.",print:"We are happy you liked the photo prints.",photo:"We are happy you liked the photos.",video:"We are glad you enjoyed the video.",candid:"We are glad the candid moments touched you.",edit:"Thank you for appreciating the editing and colours.",team:"Thank you for your kind words about our team.",punct:"Thank you for noticing our team's punctuality and planning.",deliv:"Thank you for noting that we delivered on time.",album:"We are glad you liked the album.",value:"We are happy you found it good value."},
+  close:{hi:["We look forward to capturing your next special moments.","Your support means a lot to us and we hope to serve you again.","Thank you once again, and we hope to see you soon."],
+         ok:["We hope to serve you again soon.","Thank you, and we look forward to working with you again."],
+         mid:["We will keep working to improve. If there is anything we can do better, please call us on {p}.","Your feedback helps us improve. You are always welcome to call us on {p}."],
+         lo:["Please call us on {p} so we can understand what went wrong and try to put it right.","We would like to make this right. Please call us on {p} and we will personally look into it."]}},
+ gu:{greet:n=>n?"પ્રિય "+n+",":"નમસ્તે,",sign:"આભાર સહ,\nટીમ Divine Photo Studio",
+  occ:{wedding:"લગ્ન",pre:"પ્રી-વેડિંગ",engage:"સગાઈ",anniv:"એનિવર્સરી",recep:"રિસેપ્શન",baby:"બેબી શાવર",jiyana:"જિયાણા સેરેમની",corp:"કોર્પોરેટ ઇવેન્ટ",family:"પારિવારિક પ્રસંગ"},
+  thanks:{hi:["તમારા સુંદર રિવ્યૂ અને 5 સ્ટાર માટે ખૂબ ખૂબ આભાર!","આટલા સરસ શબ્દો અને Divine Photo Studio પર ભરોસો મૂકવા બદલ આભાર.","તમારા સરસ રિવ્યૂ બદલ અમે દિલથી આભારી છીએ."],
+          ok:["તમારા સરસ રિવ્યૂ અને Divine Photo Studio પસંદ કરવા બદલ આભાર.","સમય કાઢીને તમારો અનુભવ શેર કરવા બદલ આભાર.","તમારા રિવ્યૂની અમે ખરેખર કદર કરીએ છીએ."],
+          mid:["તમારા પ્રામાણિક પ્રતિભાવ બદલ આભાર.","સમય કાઢીને રિવ્યૂ આપવા બદલ આભાર."],
+          lo:["તમારા પ્રામાણિક પ્રતિભાવ બદલ આભાર, અને તમારો અનુભવ અપેક્ષા મુજબ ન રહ્યો તે માટે અમે દિલગીર છીએ.","અમે ઓછા પડ્યા તે માટે દિલગીર છીએ, અને અમને જણાવવા બદલ આભાર."]},
+  occL:["{o}નો ભાગ બની શક્યા તેનો અમને આનંદ છે.","{o}માં સાથે રહેવાનો અમને આનંદ હતો."],
+  topic:{frame:"તમને ફોટો ફ્રેમ ગમી તેનો અમને આનંદ છે.",passport:"તમને પાસપોર્ટ સાઇઝ ફોટા ગમ્યા તેનો અમને આનંદ છે.",print:"તમને ફોટો પ્રિન્ટ ગમી તેનો અમને આનંદ છે.",photo:"તમને ફોટા ગમ્યા તેનો અમને આનંદ છે.",video:"તમને વિડિયો ગમ્યો તેનો અમને આનંદ છે.",candid:"કેન્ડિડ પળો તમારા દિલને સ્પર્શી તેનો અમને આનંદ છે.",edit:"એડિટિંગ અને કલર વર્કની પ્રશંસા બદલ આભાર.",team:"અમારી ટીમ વિશેના તમારા સારા શબ્દો બદલ આભાર.",punct:"ટીમની સમયબદ્ધતા અને વ્યવસ્થા નોંધવા બદલ આભાર.",deliv:"સમયસર ડિલિવરીની નોંધ લેવા બદલ આભાર.",album:"તમને આલ્બમ ગમ્યો તેનો અમને આનંદ છે.",value:"કામ તમને પૈસા વસૂલ લાગ્યું તેનો અમને આનંદ છે."},
+  close:{hi:["તમારી આગલી ખાસ પળો કેદ કરવાની રાહ જોઈએ છીએ.","તમારો સાથ અમારા માટે બહુ મહત્વનો છે, ફરી સેવા કરવાની તક મળે તેવી આશા.","ફરી એકવાર આભાર, ફરી મળીશું."],
+         ok:["ફરી તમારી સેવા કરવાની તક મળે તેવી આશા.","આભાર, ફરી સાથે કામ કરવાની રાહ જોઈએ છીએ."],
+         mid:["અમે સુધારો કરતા રહીશું. કંઈ વધુ સારું થઈ શકે તો કૃપા કરીને અમને {p} પર કૉલ કરો.","તમારો પ્રતિભાવ અમને સુધરવામાં મદદ કરે છે. {p} પર તમે ગમે ત્યારે કૉલ કરી શકો છો."],
+         lo:["કૃપા કરીને અમને {p} પર કૉલ કરો, જેથી શું ખોટું થયું તે સમજીને અમે સુધારો કરી શકીએ.","અમે આને સુધારવા માગીએ છીએ. કૃપા કરીને {p} પર કૉલ કરો, અમે જાતે તપાસ કરીશું."]}},
+ hi:{greet:n=>n?"प्रिय "+n+",":"नमस्ते,",sign:"धन्यवाद सहित,\nटीम Divine Photo Studio",
+  occ:{wedding:"शादी",pre:"प्री-वेडिंग",engage:"सगाई",anniv:"सालगिरह",recep:"रिसेप्शन",baby:"बेबी शावर",jiyana:"जियाना सेरेमनी",corp:"कॉर्पोरेट इवेंट",family:"पारिवारिक समारोह"},
+  thanks:{hi:["आपके शानदार रिव्यू और 5 स्टार के लिए बहुत-बहुत धन्यवाद!","इतने अच्छे शब्दों और Divine Photo Studio पर भरोसा करने के लिए धन्यवाद।","आपके सुंदर रिव्यू के लिए हम दिल से आभारी हैं।"],
+          ok:["आपके अच्छे रिव्यू और Divine Photo Studio को चुनने के लिए धन्यवाद।","समय निकालकर अपना अनुभव साझा करने के लिए धन्यवाद।","आपके रिव्यू की हम सचमुच कद्र करते हैं।"],
+          mid:["आपकी ईमानदार राय के लिए धन्यवाद।","समय निकालकर रिव्यू देने के लिए धन्यवाद।"],
+          lo:["आपकी ईमानदार राय के लिए धन्यवाद, और आपका अनुभव उम्मीद के मुताबिक नहीं रहा, इसके लिए हमें खेद है।","हम कमतर रहे, इसका हमें खेद है, और हमें बताने के लिए धन्यवाद।"]},
+  occL:["{o} का हिस्सा बनकर हमें खुशी हुई।","{o} में आपके साथ रहना हमारे लिए खुशी की बात थी।"],
+  topic:{frame:"आपको फोटो फ्रेम पसंद आई, यह जानकर हमें खुशी हुई।",passport:"आपको पासपोर्ट साइज फोटो पसंद आए, यह जानकर हमें खुशी हुई।",print:"आपको फोटो प्रिंट पसंद आए, यह जानकर हमें खुशी हुई।",photo:"आपको फोटो पसंद आए, यह जानकर हमें खुशी हुई।",video:"आपको वीडियो पसंद आया, यह जानकर हमें खुशी हुई।",candid:"कैंडिड पल आपके दिल को छू गए, यह हमारे लिए खुशी की बात है।",edit:"एडिटिंग और कलर वर्क को सराहने के लिए धन्यवाद।",team:"हमारी टीम के बारे में आपके अच्छे शब्दों के लिए धन्यवाद।",punct:"टीम की समय की पाबंदी और व्यवस्था को सराहने के लिए धन्यवाद।",deliv:"समय पर डिलीवरी की सराहना के लिए धन्यवाद।",album:"आपको एल्बम पसंद आया, यह जानकर हमें खुशी हुई।",value:"काम आपको पैसा वसूल लगा, यह जानकर हमें खुशी हुई।"},
+  close:{hi:["आपके अगले खास पलों को कैद करने का हमें इंतज़ार रहेगा।","आपका साथ हमारे लिए बहुत मायने रखता है, फिर सेवा का मौका मिले यही उम्मीद है।","एक बार फिर धन्यवाद, जल्द मिलेंगे।"],
+         ok:["फिर आपकी सेवा करने का मौका मिले, यही उम्मीद है।","धन्यवाद, दोबारा साथ काम करने का इंतज़ार रहेगा।"],
+         mid:["हम सुधार करते रहेंगे। कुछ और बेहतर हो सके तो कृपया हमें {p} पर कॉल करें।","आपकी राय हमें बेहतर बनाती है। आप कभी भी {p} पर कॉल कर सकते हैं।"],
+         lo:["कृपया हमें {p} पर कॉल करें, ताकि हम समझ सकें कि क्या गलत हुआ और उसे सुधार सकें।","हम इसे ठीक करना चाहते हैं। कृपया {p} पर कॉल करें, हम खुद इसे देखेंगे।"]}}
+};
+
+const S={rating:0,last:{}};
+const $=id=>document.getElementById(id);
+const tone=r=>r==5?"hi":r==4?"ok":r==3?"mid":"lo";
+const pick=(a,k)=>{let i;do{i=Math.floor(Math.random()*a.length)}while(a.length>1&&S.last[k]===i);S.last[k]=i;return a[i]};
+const P_=s=>s.replace(/\{p\}/g,CONFIG.phone);
+const langOf=t=>/[\u0A80-\u0AFF]/.test(t)?"gu":/[\u0900-\u097F]/.test(t)?"hi":"en";   // reply language follows the script of the pasted review
+
+function build(){
+  const rv=$("rv").value.slice(0,1500),L=langOf(rv),P=PH[L],t=tone(S.rating),n=$("name").value.replace(/[<>]/g,"").trim().slice(0,30);
+  const occ=(OCCDET.find(([k,re])=>re.test(rv))||[])[0];
+  let tops=TOPDET.filter(([k,re])=>re.test(rv)).map(x=>x[0]);
+  if(tops.includes("deliv"))tops=tops.filter(k=>k!=="punct");
+  const prod=tops.some(k=>["frame","passport","print"].includes(k));
+  if(prod)tops=tops.filter(k=>k!=="photo");
+  let para=[pick(P.thanks[t],"th")];
+  if((t==="hi"||t==="ok")&&occ&&!prod)para.push(pick(P.occL,"oc").replace("{o}",P.occ[occ]));
+  if(t!=="lo")tops.sort(()=>Math.random()-.5).slice(0,3).forEach(k=>P.topic[k]&&para.push(P.topic[k]));
+  $("txt").value=[P.greet(n),para.join(" "),P_(pick(P.close[t],"cl")),P.sign].join("\n\n");
+  $("out").classList.remove("hidden");
+  $("out").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function draw(){
+  $("stars").innerHTML="";
+  for(let i=1;i<=5;i++){const b=document.createElement("button");b.textContent="★";b.setAttribute("aria-label",i+" stars");b.className=i<=S.rating?"on":"";b.onclick=()=>{S.rating=i;draw()};$("stars").appendChild(b)}
+  $("gen").disabled=!S.rating;
+}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
+function copySync(){let ok=false;try{const t=$("txt");t.focus();t.select();t.setSelectionRange(0,t.value.length);ok=document.execCommand("copy")}catch(e){}try{navigator.clipboard&&navigator.clipboard.writeText($("txt").value)}catch(e){}return ok}
+$("gen").onclick=build;$("again").onclick=build;
+$("copyopen").addEventListener("click",()=>{copySync();toast("Reply copied. Paste it under the review")});
+draw();
+</script>
+</body>
+</html>
