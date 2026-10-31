@@ -161,13 +161,13 @@ draw();
 
 // ===== TAB 2: ask a client for a review (gu/hi need native check) =====
 const ASK={
- en:{hi:n=>n?"Hello "+n+"!":"Hello!",a:e=>e?"Thank you for trusting Divine Photo Studio with your "+e+".":"Thank you for trusting Divine Photo Studio with your special moments.",b:"We would love to hear about your experience. It takes less than a minute, just a few taps and no typing needed:",c:"Your feedback means a lot to us. Thank you!"},
- gu:{hi:n=>n?"નમસ્તે "+n+"!":"નમસ્તે!",a:e=>(e?e+" માટે":"તમારી ખાસ પળો માટે")+" Divine Photo Studio પર ભરોસો મૂકવા બદલ આભાર.",b:"અમારી સાથેનો તમારો અનુભવ અમને જણાવશો તો ખૂબ ગમશે. એક મિનિટથી ઓછો સમય લાગે છે, થોડા ટેપ જ કરવાના છે, લખવાની જરૂર નથી:",c:"તમારો પ્રતિભાવ અમારા માટે બહુ મહત્વનો છે. આભાર!"},
- hi:{hi:n=>n?"नमस्ते "+n+"!":"नमस्ते!",a:e=>(e?e+" के लिए":"अपने खास पलों के लिए")+" Divine Photo Studio पर भरोसा करने के लिए धन्यवाद।",b:"हमें आपके अनुभव के बारे में जानकर बहुत खुशी होगी। इसमें एक मिनट से कम लगता है, बस कुछ टैप करने हैं, लिखने की ज़रूरत नहीं:",c:"आपकी राय हमारे लिए बहुत मायने रखती है। धन्यवाद!"}};
+ en:{hi:n=>n?"Hello "+n+",":"Hello,",a:e=>e?"Thank you for trusting Divine Photo Studio with your "+e:"Thank you for trusting Divine Photo Studio with your special moments",b:"We would love to hear about your experience. It takes less than a minute, just a few taps and no typing needed:",c:"Your feedback means a lot to us. Thank you!"},
+ gu:{hi:n=>n?"નમસ્તે "+n+",":"નમસ્તે,",a:e=>(e?e+" માટે":"તમારી ખાસ પળો માટે")+" Divine Photo Studio પર ભરોસો મૂકવા બદલ આભાર.",b:"અમારી સાથેનો તમારો અનુભવ અમને જણાવશો તો ખૂબ ગમશે. એક મિનિટથી ઓછો સમય લાગે છે, થોડા ટેપ જ કરવાના છે, લખવાની જરૂર નથી:",c:"તમારો પ્રતિભાવ અમારા માટે બહુ મહત્વનો છે. આભાર!"},
+ hi:{hi:n=>n?"नमस्ते "+n+",":"नमस्ते,",a:e=>(e?e+" के लिए":"अपने खास पलों के लिए")+" Divine Photo Studio पर भरोसा करने के लिए धन्यवाद।",b:"हमें आपके अनुभव के बारे में जानकर बहुत खुशी होगी। इसमें एक मिनट से कम लगता है, बस कुछ टैप करने हैं, लिखने की ज़रूरत नहीं:",c:"आपकी राय हमारे लिए बहुत मायने रखती है। धन्यवाद!"}};
 const A={lang:"en"};
 function askMsg(){
   const c=x=>$(x).value.replace(/[<>]/g,"").trim(),T=ASK[A.lang];
-  $("amsg").value=T.hi(c("an").slice(0,30))+" "+T.a(c("ae").slice(0,40))+" "+T.b+"\n"+CONFIG.reviewLink+"\n"+T.c;
+  $("amsg").value=T.hi(c("an").slice(0,30))+"\n\n"+T.a(c("ae").slice(0,40))+"\n\n"+T.b+" "+CONFIG.reviewLink+" "+T.c;
   setAskWa();
 }
 function setAskWa(){
