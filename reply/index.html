@@ -39,8 +39,10 @@ footer{text-align:center;font-size:12px;color:var(--mute);padding:6px 0 max(24px
 </head>
 <body>
 <div class="wrap">
-  <h1>Reply Assistant</h1>
-  <p class="sub">Divine Photo Studio · Google review replies</p>
+  <h1>Review Tools</h1>
+  <p class="sub">Divine Photo Studio · for the studio team</p>
+  <div class="chips" id="tabs" style="justify-content:center;margin-bottom:14px"></div>
+  <div id="pReply">
   <div class="card">
     <h3>1. Stars the customer gave</h3>
     <div class="stars" id="stars"></div>
@@ -57,12 +59,30 @@ footer{text-align:center;font-size:12px;color:var(--mute);padding:6px 0 max(24px
     <button class="btn alt" id="again">Another Version</button>
     <p class="note">This copies your reply and opens your Google Business page. Tap <b>Reviews</b>, then <b>Reply</b> under the review and paste. Replies are public, so don't add private details such as prices or booking information.</p>
   </div>
+  </div>
+  <div id="pAsk" class="hidden">
+   <div class="card">
+    <h3>1. Customer's first name <span class="opt">(optional)</span></h3>
+    <input class="t" id="an" maxlength="30" autocomplete="off" autocapitalize="words" placeholder="e.g. Rahul">
+    <h3>2. Event name <span class="opt">(type it, e.g. wedding, engagement)</span></h3>
+    <input class="t" id="ae" maxlength="40" autocomplete="off" placeholder="e.g. wedding">
+    <h3>3. Language</h3>
+    <div class="chips" id="alang"></div>
+    <h3>4. Customer's WhatsApp number <span class="opt">(optional)</span></h3>
+    <input class="t" id="aph" maxlength="16" inputmode="tel" autocomplete="off" placeholder="10-digit number">
+    <h3>Message <span class="opt">(you can edit it)</span></h3>
+    <textarea id="amsg"></textarea>
+    <a class="btn" id="awa" href="#" target="_blank" rel="noopener noreferrer" style="text-align:center;text-decoration:none;line-height:52px;padding:0">Send on WhatsApp</a>
+    <button class="btn alt" id="acopy">Copy Message</button>
+    <p class="note">Send it to one client at a time, and don't offer any gift or discount for a review.</p>
+   </div>
+  </div>
 </div>
 <footer>Powered By BrandLift.Ai Studio</footer>
 <div class="toast" id="toast"></div>
 <script>
 // ===== CONFIG =====
-const CONFIG={phone:"7878922247"};   // studio office number (Studio Profile)
+const CONFIG={phone:"7878922247",reviewLink:"https://annonymou05.github.io/review/"};   // studio office number (Studio Profile)
 // The "Copy & Open" button opens https://business.google.com/ (sign in, tap Reviews, tap Reply). Replace the href in the HTML with a direct link if you find one.
 // NOTE: Gujarati (gu) and Hindi (hi) wording was written without a native review — please have a native speaker check the PH bank.
 
@@ -138,6 +158,33 @@ function copySync(){let ok=false;try{const t=$("txt");t.focus();t.select();t.set
 $("gen").onclick=build;$("again").onclick=build;
 $("copyopen").addEventListener("click",()=>{copySync();toast("Reply copied. Paste it under the review")});
 draw();
+
+// ===== TAB 2: ask a client for a review (gu/hi need native check) =====
+const ASK={
+ en:{hi:n=>n?"Hello "+n+"!":"Hello!",a:e=>e?"Thank you for trusting Divine Photo Studio with your "+e+".":"Thank you for trusting Divine Photo Studio with your special moments.",b:"We would love to hear about your experience. It takes less than a minute, just a few taps and no typing needed:",c:"Your feedback means a lot to us. Thank you!"},
+ gu:{hi:n=>n?"નમસ્તે "+n+"!":"નમસ્તે!",a:e=>(e?e+" માટે":"તમારી ખાસ પળો માટે")+" Divine Photo Studio પર ભરોસો મૂકવા બદલ આભાર.",b:"અમારી સાથેનો તમારો અનુભવ અમને જણાવશો તો ખૂબ ગમશે. એક મિનિટથી ઓછો સમય લાગે છે, થોડા ટેપ જ કરવાના છે, લખવાની જરૂર નથી:",c:"તમારો પ્રતિભાવ અમારા માટે બહુ મહત્વનો છે. આભાર!"},
+ hi:{hi:n=>n?"नमस्ते "+n+"!":"नमस्ते!",a:e=>(e?e+" के लिए":"अपने खास पलों के लिए")+" Divine Photo Studio पर भरोसा करने के लिए धन्यवाद।",b:"हमें आपके अनुभव के बारे में जानकर बहुत खुशी होगी। इसमें एक मिनट से कम लगता है, बस कुछ टैप करने हैं, लिखने की ज़रूरत नहीं:",c:"आपकी राय हमारे लिए बहुत मायने रखती है। धन्यवाद!"}};
+const A={lang:"en"};
+function askMsg(){
+  const c=x=>$(x).value.replace(/[<>]/g,"").trim(),T=ASK[A.lang];
+  $("amsg").value=T.hi(c("an").slice(0,30))+" "+T.a(c("ae").slice(0,40))+" "+T.b+"\n"+CONFIG.reviewLink+"\n"+T.c;
+  setAskWa();
+}
+function setAskWa(){
+  let d=$("aph").value.replace(/\D/g,"");if(d.length===10)d="91"+d;
+  $("awa").href="https://wa.me/"+(d.length>=11&&d.length<=15?d:"")+"?text="+encodeURIComponent($("amsg").value);
+}
+function drawAsk(){
+  const box=$("alang");box.innerHTML="";
+  [["en","English"],["gu","ગુજરાતી"],["hi","हिन्दी"]].forEach(([k,l])=>{const b=document.createElement("button");b.className="chip"+(A.lang===k?" on":"");b.textContent=l;b.onclick=()=>{A.lang=k;drawAsk();askMsg()};box.appendChild(b)});
+}
+function drawTabs(){
+  const box=$("tabs");box.innerHTML="";
+  [["pReply","Reply to a review"],["pAsk","Ask for a review"]].forEach(([id,l])=>{const b=document.createElement("button");b.className="chip"+(!$(id).classList.contains("hidden")?" on":"");b.textContent=l;b.onclick=()=>{["pReply","pAsk"].forEach(x=>$(x).classList.toggle("hidden",x!==id));drawTabs()};box.appendChild(b)});
+}
+["an","ae"].forEach(i=>$(i).oninput=askMsg);$("aph").oninput=setAskWa;$("amsg").oninput=setAskWa;
+$("acopy").onclick=()=>{try{const t=$("amsg");t.focus();t.select();t.setSelectionRange(0,t.value.length);document.execCommand("copy")}catch(e){}try{navigator.clipboard&&navigator.clipboard.writeText($("amsg").value)}catch(e){}toast("Message copied")};
+drawTabs();drawAsk();askMsg();
 </script>
 </body>
 </html>
